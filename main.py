@@ -71,6 +71,7 @@ def index():
 #@login_required
 def dashboard(userId):
     session = generateSessionEntity()
+    pp(session)
     link = "http://localhost:3001/myinfo/{}".format(str(session))
     payload = dict()
     payload['link'] = link

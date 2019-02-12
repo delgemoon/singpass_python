@@ -44,6 +44,7 @@ def generateSessionEntity():
 
     # The name/ID for the new entity.
     session = uuid.uuid4().hex
+    pp(session)
 
     # Create the Cloud Datastore key for the new entity.
     key = datastore_client.key(kind, str(session), namespace='MyInfoApp')

@@ -42,7 +42,10 @@ b. converting https://github.com/jamesleegovtech/myinfo-demo-app/tree/master/lib
 a. app engine flex(1st)
 b. kubernetes (2nd)
 
+
 Note:
+https://stackoverflow.com/questions/5590170/what-is-the-standard-method-for-generating-a-nonce-in-python
+
 https://myinfosgstg.api.gov.sg/dev/v2/person-sample/S9203266C/ 
 T0066846F
 F9477325W

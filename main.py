@@ -77,8 +77,7 @@ def dashboard(userId):
     payload['link'] = link
     data = query_data(userId)
     payload['users'] = data
-    return render_template(
-           'dashboard.html', data=payload)
+    return render_template('dashboard.html', data=payload)
 
 def format_response(res):
     res= json.dumps(res, indent = 4)
@@ -98,9 +97,9 @@ def getEnv():
     res['redirectUrl'] = MYINFO_APP_REDIRECT_URL
     return format_response(res)
 
-@app.route('/myinfo/<SessionId>')
-def myInfo(SessionId):
-    return render_template('consent_given.html')
+@app.route('/myinfo/<sessionId>')
+def myInfo(sessionId):
+    return render_template('consent_given.html', data=sessionId)
 
 @app.route('/callback')
 def callback():

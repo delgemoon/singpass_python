@@ -9,7 +9,7 @@
         var clientId = "STG2-MYINFO-SELF-TEST"
         // the purpose of your data retrieval
         var purpose = "demonstrating MyInfo APIs";
-        var state = "123"
+        var state = "{{ data | safe }}"
         var redirectUrl = "http://localhost:3001/callback"
         // main function for handling form events
         $(function() {

@@ -9,6 +9,9 @@ import uuid
 import json
 import os
 import logging
+import urllib.parse
+import requests
+from security import security
 
 AUTH_LEVEL = os.environ.get('AUTH_LEVEL')
 DEMO_APP_SIGNATURE_CERT_PRIVATE_KEY = os.environ.get('DEMO_APP_SIGNATURE_CERT_PRIVATE_KEY')
@@ -17,6 +20,11 @@ MYINFO_APP_CLIENT_ID = os.environ.get('MYINFO_APP_CLIENT_ID')
 MYINFO_APP_CLIENT_SECRET = os.environ.get('MYINFO_APP_CLIENT_SECRET')
 MYINFO_APP_REALM = os.environ.get('MYINFO_APP_REALM')
 MYINFO_APP_REDIRECT_URL = os.environ.get('MYINFO_APP_REDIRECT_URL')
+MYINFO_API_AUTHORISE= os.environ.get('MYINFO_API_AUTHORISE')
+MYINFO_API_TOKEN= os.environ.get('MYINFO_API_TOKEN')
+MYINFO_API_PERSON= os.environ.get('MYINFO_API_PERSON')
+
+_attributes = "name,sex,race,nationality,dob,email,mobileno,regadd,housingtype,hdbtype,marital,edulevel,assessableincome,ownerprivate,assessyear,cpfcontributions,cpfbalances"
 
 person_test =  {
                     "link" : "http://localhost:3001/myinfo/S9812381D",
@@ -56,6 +64,23 @@ class User(UserMixin):
         
     def __repr__(self):
         return "%d/%s/%s" % (self.id, self.name, self.password)
+def refill_data(person):
+    data = dict()
+    data['name'] = person['name']['value']
+    data['sex'] = person['sex']['value']
+    data['race'] = person['race']['value']
+    data['nationality'] = person['nationality']['value']
+    data['dob'] = person['dob']['value']
+    data['email'] = person['email']['value']
+    data['mobileno'] = person['mobileno']['value']
+    data['uinfin'] = person['uinfin']['value']
+    data['edulevel'] = person['edulevel']['value']
+    data['assessableincome'] = person['assessableincome']['value']
+    data['hdbtype'] = person['hdbtype']['value']
+    data['marital'] = person['marital']['value']
+    data['regadd'] = person['regadd']['block'] + person['regadd']['building'] + person['regadd']['floor'] 
+    data['regadd'] += person['regadd']['street'] + person['regadd']['postal'] + person['regadd']['country']
+    return data
 
 # callback to reload the user object        
 @login_manager.user_loader
@@ -101,9 +126,44 @@ def getEnv():
 def myInfo(sessionId):
     return render_template('consent_given.html', data=sessionId)
 
+
 @app.route('/callback')
 def callback():
-    pp(request)
+    pp(request.args['code'])
+    code = request.args['code']
+    state = request.args['state']
+    cacheCtl = "no-cache"
+    contentType = "application/x-www-form-urlencoded"
+
+    url = MYINFO_API_TOKEN
+    params = {}
+    params['grant_type'] = 'authorization_code'
+    params['code'] = code
+    params['redirect_uri'] = MYINFO_APP_REDIRECT_URL
+    params['client_id'] = MYINFO_APP_CLIENT_ID
+    params['client_secret'] = MYINFO_APP_CLIENT_SECRET
+    headers = dict()
+    headers['Content-Type'] = contentType
+    headers['Cache-Control'] = cacheCtl
+    res = requests.post(url, data=params, headers=headers)
+    pp(res.json())
+    body = res.json()
+    payload = security.verifyJWS(body['access_token'], MYINFO_CONSENTPLATFORM_SIGNATURE_CERT_PUBLIC_CERT)
+    pp(payload)
+    url = MYINFO_API_PERSON + "/" + payload['sub'] + "/"
+
+    # assemble params for Person API
+    params = dict()
+    params['client_id'] = MYINFO_APP_CLIENT_ID
+    params['attributes'] = _attributes
+    
+
+    # assemble headers for Person API
+    headers['Cache-Control'] = cacheCtl
+    headers['Authorization'] =  "Bearer " + body['access_token']
+    res = requests.get(url, params=params, headers=headers)
+    person_data = res.json()
+    data = refill_data(person_data)
     return format_response({"result" : "OK"})
 
 @app.route('/test')

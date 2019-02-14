@@ -4,7 +4,7 @@ from pprint import pprint as pp
 from flask import make_response, Flask, flash, redirect, render_template, request, url_for
 from flask_login import LoginManager, UserMixin, \
                             login_required, login_user, logout_user 
-from data_handler import validateUserLogin, generateSessionEntity, query_data
+from data_handler import validateUserLogin, generateSessionEntity, query_data, updateSessionEntity
 import uuid
 import json
 import os
@@ -72,14 +72,13 @@ def refill_data(person):
     data['nationality'] = person['nationality']['value']
     data['dob'] = person['dob']['value']
     data['email'] = person['email']['value']
-    data['mobileno'] = person['mobileno']['value']
-    data['uinfin'] = person['uinfin']['value']
+    data['mobileno'] = person['mobileno']['prefix'] + person['mobileno']['code'] + person['mobileno']['nbr']
     data['edulevel'] = person['edulevel']['value']
     data['assessableincome'] = person['assessableincome']['value']
     data['hdbtype'] = person['hdbtype']['value']
     data['marital'] = person['marital']['value']
-    data['regadd'] = person['regadd']['block'] + person['regadd']['building'] + person['regadd']['floor'] 
-    data['regadd'] += person['regadd']['street'] + person['regadd']['postal'] + person['regadd']['country']
+    data['regadd'] = person['regadd']['block'] + " " + person['regadd']['building'] + " " + person['regadd']['floor'] 
+    data['regadd'] += " " + person['regadd']['street'] + " " + person['regadd']['postal'] + " " + person['regadd']['country']
     return data
 
 # callback to reload the user object        
@@ -95,12 +94,13 @@ def index():
 @app.route('/dashboard/<userId>')
 #@login_required
 def dashboard(userId):
-    session = generateSessionEntity()
-    pp(session)
+    pp(userId)
+    session = generateSessionEntity(userId)
     link = "http://localhost:3001/myinfo/{}".format(str(session))
     payload = dict()
     payload['link'] = link
     data = query_data(userId)
+    pp(data)
     payload['users'] = data
     return render_template('dashboard.html', data=payload)
 
@@ -146,10 +146,9 @@ def callback():
     headers['Content-Type'] = contentType
     headers['Cache-Control'] = cacheCtl
     res = requests.post(url, data=params, headers=headers)
-    pp(res.json())
     body = res.json()
     payload = security.verifyJWS(body['access_token'], MYINFO_CONSENTPLATFORM_SIGNATURE_CERT_PUBLIC_CERT)
-    pp(payload)
+    uinfin = payload['sub']
     url = MYINFO_API_PERSON + "/" + payload['sub'] + "/"
 
     # assemble params for Person API
@@ -164,6 +163,10 @@ def callback():
     res = requests.get(url, params=params, headers=headers)
     person_data = res.json()
     data = refill_data(person_data)
+    data['uinfin'] = uinfin
+    pp(data)
+    sess = updateSessionEntity(state, None, uinfin, data)
+    pp(sess)
     return format_response({"result" : "OK"})
 
 @app.route('/test')

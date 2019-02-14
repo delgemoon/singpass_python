@@ -33,7 +33,7 @@ def validateUserLogin(userName, password):
         if user['userName'] == userName and user['password'] == password:
             return True
     return False
-def generateSessionEntity():
+def generateSessionEntity(requester):
     # Create a Cloud Datastore client.
     datastore_client = datastore.Client()
     # Fetch the current date / time.
@@ -52,7 +52,7 @@ def generateSessionEntity():
     # Construct the new entity using the key. Set dictionary values for entity
     # keys blob_name, requester, requetee, timestamp, nonce.
     entity = datastore.Entity(key)
-    entity['requester'] = ""
+    entity['requester'] = requester
     entity['requestee'] = ""
     entity['timestamp'] = current_datetime
     entity['data'] = dict()
@@ -70,10 +70,14 @@ def updateSessionEntity(session, requester, requestee, data):
     entity = datastore_client.get(key)
     if entity is None:
         return None
-    entity['requester'] = requester
-    entity['requestee'] = requestee
-    entity['data'] = data
+    if requester is not None:
+        entity['requester'] = requester
+    if requestee is not None:
+        entity['requestee'] = requestee
+    if data is not None:
+        entity['data'] = data
     datastore_client.put(entity)
+    __delete_previous_session__(session, entity['requester'], entity['requestee'])
     return session
 
 def getSessionEntity(session):
@@ -87,6 +91,24 @@ def getSessionEntity(session):
         return None
     return entity
 
+def __delete_previous_session__(current_session, requester, requestee):
+        # Create a Cloud Datastore client.
+    datastore_client = datastore.Client()
+
+    query = datastore_client.query(kind='Sessions', namespace='MyInfoApp')
+    query.add_filter('requester', '=', requester)
+    query.add_filter('requestee', '=', requestee)
+    sessions = list(query.fetch())
+    kind = 'Sessions'
+    if sessions is not None:
+        for session in sessions:
+            name = session.key.name
+            pp(name)
+            if name != current_session:
+                key = datastore_client.key(kind, str(name), namespace="MyInfoApp")
+                datastore_client.delete(key)
+    return True
+
 def query_data(requester):
     # Create a Cloud Datastore client.
     datastore_client = datastore.Client()
@@ -97,11 +119,14 @@ def query_data(requester):
     requesters = list(query.fetch())
     if requesters is None:
         return None
-    data = [requester['data'] for requester in requesters]
+    data = []
+    for request in requesters:
+        if bool(request['data']) == True and request['requestee'] != '':
+            data.append(request['data'])
     return data
 
 if __name__ == "__main__":
-    sess = generateSessionEntity()
+    sess = generateSessionEntity("abc")
     print(sess)
     entity = getSessionEntity(sess)
     if entity is None:

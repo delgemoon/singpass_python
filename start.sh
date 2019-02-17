@@ -34,10 +34,10 @@ export MYINFO_API_TOKEN='https://sandbox.api.myinfo.gov.sg/com/v2/token'
 export MYINFO_API_PERSON='https://sandbox.api.myinfo.gov.sg/com/v2/person'
 
 # TEST ENVIRONMENT (with PKI digital signature)
-# export AUTH_LEVEL=L2
-# export MYINFO_API_AUTHORISE='https://test.api.myinfo.gov.sg/com/v2/authorise'
-# export MYINFO_API_TOKEN='https://test.api.myinfo.gov.sg/com/v2/token'
-# export MYINFO_API_PERSON='https://test.api.myinfo.gov.sg/com/v2/person'
+export AUTH_LEVEL=L2
+export MYINFO_API_AUTHORISE='https://test.api.myinfo.gov.sg/com/v2/authorise'
+export MYINFO_API_TOKEN='https://test.api.myinfo.gov.sg/com/v2/token'
+export MYINFO_API_PERSON='https://test.api.myinfo.gov.sg/com/v2/person'
 export GOOGLE_APPLICATION_CREDENTIALS='./key.json'
 
 python main.py 

@@ -94,13 +94,11 @@ def index():
 @app.route('/dashboard/<userId>')
 #@login_required
 def dashboard(userId):
-    pp(userId)
     session = generateSessionEntity(userId)
     link = "http://localhost:3001/myinfo/{}".format(str(session))
     payload = dict()
     payload['link'] = link
     data = query_data(userId)
-    pp(data)
     payload['users'] = data
     return render_template('dashboard.html', data=payload)
 
@@ -126,15 +124,9 @@ def getEnv():
 def myInfo(sessionId):
     return render_template('consent_given.html', data=sessionId)
 
-
-@app.route('/callback')
-def callback():
-    pp(request.args['code'])
-    code = request.args['code']
-    state = request.args['state']
+def token_request(code):
     cacheCtl = "no-cache"
     contentType = "application/x-www-form-urlencoded"
-
     url = MYINFO_API_TOKEN
     params = {}
     params['grant_type'] = 'authorization_code'
@@ -145,23 +137,73 @@ def callback():
     headers = dict()
     headers['Content-Type'] = contentType
     headers['Cache-Control'] = cacheCtl
+    authHeaders = None
+    if AUTH_LEVEL == "L0":
+        authHeaders = ""
+    else:
+        authHeaders = security.generateAuthorizationHeader(url,
+                                                            params,
+                                                            "POST",
+                                                            contentType,
+                                                            AUTH_LEVEL,
+                                                            MYINFO_APP_CLIENT_ID,
+                                                            DEMO_APP_SIGNATURE_CERT_PRIVATE_KEY,
+                                                            MYINFO_APP_CLIENT_SECRET,
+                                                            MYINFO_APP_REALM)
+    if authHeaders != "":
+        headers['Authorization'] = authHeaders
+    pp(headers)
     res = requests.post(url, data=params, headers=headers)
-    body = res.json()
-    payload = security.verifyJWS(body['access_token'], MYINFO_CONSENTPLATFORM_SIGNATURE_CERT_PUBLIC_CERT)
-    uinfin = payload['sub']
-    url = MYINFO_API_PERSON + "/" + payload['sub'] + "/"
+    return res
+
+def person_request(uinfin, validToken):
+    pp(uinfin)
+    cacheCtl = "no-cache"
+    params = {}
+    headers = dict()
+    authHeaders = None
+    url = MYINFO_API_PERSON + "/" + uinfin + "/"
 
     # assemble params for Person API
     params = dict()
     params['client_id'] = MYINFO_APP_CLIENT_ID
     params['attributes'] = _attributes
-    
-
     # assemble headers for Person API
+    if AUTH_LEVEL == "L0":
+        authHeaders = ""
+    else:
+        authHeaders = security.generateAuthorizationHeader(url,
+                                                            params,
+                                                            "GET",
+                                                            "",
+                                                            AUTH_LEVEL,
+                                                            MYINFO_APP_CLIENT_ID,
+                                                            DEMO_APP_SIGNATURE_CERT_PRIVATE_KEY,
+                                                            MYINFO_APP_CLIENT_SECRET,
+                                                            MYINFO_APP_REALM)
     headers['Cache-Control'] = cacheCtl
-    headers['Authorization'] =  "Bearer " + body['access_token']
+    if authHeaders == "":
+        headers['Authorization'] =  "Bearer " + validToken
+    else:
+        headers['Authorization'] =  authHeaders + ",Bearer " + validToken
+    pp(headers)
     res = requests.get(url, params=params, headers=headers)
-    person_data = res.json()
+    return res
+
+@app.route('/callback')
+def callback():
+    code = request.args['code']
+    state = request.args['state']
+    res = token_request(code)
+    body = res.json()
+    pp(body)
+    payload = security.verifyJWS(body.get('access_token'), MYINFO_CONSENTPLATFORM_SIGNATURE_CERT_PUBLIC_CERT)
+    uinfin = payload['sub']
+    pp(payload)
+    res = person_request(payload['sub'], body.get('access_token'))
+    body = res.text
+    pp("body =" + body)
+    person_data = security.decryptJWE(body, DEMO_APP_SIGNATURE_CERT_PRIVATE_KEY)
     data = refill_data(person_data)
     data['uinfin'] = uinfin
     pp(data)

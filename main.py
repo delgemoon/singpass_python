@@ -9,7 +9,6 @@ import uuid
 import json
 import os
 import logging
-import urllib.parse
 import requests
 from security import security
 

@@ -37,7 +37,10 @@ Use this test ID and password to login to SingPass:
 NRIC: ``S9812381D``
 Password: ``MyInfo2o15``
 
-A dashboard will appear, You need to copy the access request link in order to give
+Other users can be found here
+https://www.ndi-api.gov.sg/assets/lib/trusted-data/myinfo/downloads/myinfo-test-profiles.xlsx
+
+A dashboard will appear, You need to copy the access request link to give
 to those who you want to collect information. After they give their consent, you can 
 see their info on your dashboard.
 

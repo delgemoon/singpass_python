@@ -9,13 +9,13 @@ In order for the demo application to run locally, you will need to install pytho
 Follow the instructions below to install dependencies.
 
 **For Linux/MacOS**
-...
+```
 $ cd singpass_python
 $ virtualenv venv
 $ source venv/bin/activate
 $ pip install -r requirements.txt
 $ ./start.sh
-...
+```
 
 ### 1.2 Start the Application
 
@@ -106,10 +106,10 @@ gcloud app logs read
 # In order to perform request on app engine, We have to run callback service under callback folder. Since the
 # url callback is hardcoded at http://localhost:3001/callback. This callbacl service will send a request to 
 # app engine at https://myinfo.appspot.com/callback. 
-...
+```
 $ cd singpass_python
 $ virtualenv venv
 $ source venv/bin/activate
 $ pip install -r requirements.txt
 $ ./start.sh
-...
+```

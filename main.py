@@ -198,6 +198,10 @@ def person_request(uinfin, validToken):
 def callback():
     code = request.args['code']
     state = request.args['state']
+    if code is None or code == "":
+        return format_response({"result" : "Bad Request"})
+    if state is None or state == "":
+        return format_response({"result" : "Bad Request"})
     res = token_request(code)
     body = res.json()
     pp(body)

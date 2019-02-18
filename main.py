@@ -162,6 +162,7 @@ def token_request(code):
 
 def person_request(uinfin, validToken):
     pp(uinfin)
+    pp(validToken)
     cacheCtl = "no-cache"
     params = {}
     headers = dict()
@@ -187,9 +188,11 @@ def person_request(uinfin, validToken):
                                                             MYINFO_APP_REALM)
     headers['Cache-Control'] = cacheCtl
     if authHeaders == "":
-        headers['Authorization'] =  "Bearer " + validToken
+        headers['Authorization'] =  "Bearer {}".format(validToken)
     else:
-        headers['Authorization'] =  authHeaders + ",Bearer " + validToken
+        authorization =  "{},Bearer {}".format(authHeaders, validToken)
+        headers['Authorization'] = json.dumps(authorization)
+        headers['Authorization'] = authorization
     pp(headers)
     res = requests.get(url, params=params, headers=headers)
     return res

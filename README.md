@@ -6,11 +6,11 @@
 
 In order for the demo application to run locally, you will need to install python 3.7, pip, and virtualenv.
 
-Follow the instructions given by the links below depending on your OS.
+Follow the instructions below to install dependencies.
 
-- [Install Node and NPM for Windows](http://blog.teamtreehouse.com/install-node-js-npm-windows)
-- [Install Node and NPM for Linux](http://blog.teamtreehouse.com/install-node-js-npm-linux)
-- [nstall Node and NPM for Mac](http://blog.teamtreehouse.com/install-node-js-npm-mac)
+python3 -m venv venv
+. venv/bin/activate
+pip install -r requirements.txt
 
 ### 1.2 Start the Application
 

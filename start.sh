@@ -5,6 +5,7 @@ export MYINFO_APP_CLIENT_ID=STG2-MYINFO-SELF-TEST
 export MYINFO_APP_CLIENT_SECRET=44d953c796cccebcec9bdc826852857ab412fbe2
 export MYINFO_APP_REDIRECT_URL=http://localhost:3001/callback
 export MYINFO_APP_REALM=http://localhost:3001
+export PROJECT_ID=''
 
 #############################
 # FOR version 2.1 APIs only

@@ -23,6 +23,7 @@ MYINFO_APP_REDIRECT_URL = os.environ.get('MYINFO_APP_REDIRECT_URL')
 MYINFO_API_AUTHORISE= os.environ.get('MYINFO_API_AUTHORISE')
 MYINFO_API_TOKEN= os.environ.get('MYINFO_API_TOKEN')
 MYINFO_API_PERSON= os.environ.get('MYINFO_API_PERSON')
+MYINFO_APP_ENGINE_PROJECT = os.environ.get('PROJECT_ID')
 
 _attributes = "name,sex,race,nationality,dob,email,mobileno,regadd,housingtype,hdbtype,marital,edulevel,assessableincome,ownerprivate,assessyear,cpfcontributions,cpfbalances"
 
@@ -92,10 +93,14 @@ def index():
     return redirect(url_for('login'))
 
 @app.route('/dashboard/<userId>')
-#@login_required
+@login_required
 def dashboard(userId):
     session = generateSessionEntity(userId)
-    link = "http://localhost:3001/myinfo/{}".format(str(session))
+    pp(MYINFO_APP_ENGINE_PROJECT)
+    if MYINFO_APP_ENGINE_PROJECT != "":
+        link = "https://{}.appspot.com/myinfo/{}".format(MYINFO_APP_ENGINE_PROJECT, str(session))
+    else:
+        link = "http://localhost:3001/myinfo/{}".format(str(session))
     payload = dict()
     payload['link'] = link
     data = query_data(userId)
